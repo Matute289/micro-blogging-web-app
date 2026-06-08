@@ -58,20 +58,20 @@ describe('useTimelineSocket', () => {
     vi.useRealTimers();
   });
 
-  it('does not connect when userId is null', () => {
+  it('does not connect when token is null', () => {
     renderHook(() => useTimelineSocket(null));
     expect(FakeWebSocket.instances).toHaveLength(0);
   });
 
   it('connects with the correct URL', () => {
-    renderHook(() => useTimelineSocket('user-abc'));
+    renderHook(() => useTimelineSocket('eyJhbGc'));
     expect(FakeWebSocket.instances[0].url).toBe(
-      'ws://localhost:8080/ws/timeline?user_id=user-abc',
+      'ws://localhost:8080/ws/timeline?token=eyJhbGc',
     );
   });
 
   it('sets connected=true on WebSocket open', () => {
-    const { result } = renderHook(() => useTimelineSocket('user-1'));
+    const { result } = renderHook(() => useTimelineSocket('token-abc'));
     expect(result.current.connected).toBe(false);
     act(() => { FakeWebSocket.instances[0].triggerOpen(); });
     expect(result.current.connected).toBe(true);
@@ -79,7 +79,7 @@ describe('useTimelineSocket', () => {
 
   it('populates tweets on "timeline" message', () => {
     const tweets = [makeTweet('t1'), makeTweet('t2')];
-    const { result } = renderHook(() => useTimelineSocket('user-1'));
+    const { result } = renderHook(() => useTimelineSocket('token-abc'));
     act(() => {
       FakeWebSocket.instances[0].triggerOpen();
       FakeWebSocket.instances[0].triggerMessage({ type: 'timeline', data: tweets });
@@ -89,7 +89,7 @@ describe('useTimelineSocket', () => {
   });
 
   it('prepends tweet on real-time "tweet" message', () => {
-    const { result } = renderHook(() => useTimelineSocket('user-1'));
+    const { result } = renderHook(() => useTimelineSocket('token-abc'));
     act(() => {
       FakeWebSocket.instances[0].triggerOpen();
       FakeWebSocket.instances[0].triggerMessage({ type: 'timeline', data: [makeTweet('t1')] });
@@ -100,7 +100,7 @@ describe('useTimelineSocket', () => {
   });
 
   it('prependTweet adds a tweet optimistically', () => {
-    const { result } = renderHook(() => useTimelineSocket('user-1'));
+    const { result } = renderHook(() => useTimelineSocket('token-abc'));
     act(() => {
       FakeWebSocket.instances[0].triggerOpen();
       FakeWebSocket.instances[0].triggerMessage({ type: 'timeline', data: [makeTweet('t1')] });
@@ -111,7 +111,7 @@ describe('useTimelineSocket', () => {
   });
 
   it('reconnects after disconnect with ~1s initial delay', () => {
-    renderHook(() => useTimelineSocket('user-1'));
+    renderHook(() => useTimelineSocket('token-abc'));
     act(() => {
       FakeWebSocket.instances[0].triggerOpen();
       FakeWebSocket.instances[0].triggerClose();
@@ -122,7 +122,7 @@ describe('useTimelineSocket', () => {
   });
 
   it('closes socket and cancels reconnect timer on unmount', () => {
-    const { unmount } = renderHook(() => useTimelineSocket('user-1'));
+    const { unmount } = renderHook(() => useTimelineSocket('token-abc'));
     const ws = FakeWebSocket.instances[0];
     act(() => { ws.triggerOpen(); ws.triggerClose(); });
     unmount();
@@ -132,7 +132,7 @@ describe('useTimelineSocket', () => {
   });
 
   it('sets error and stops retrying after MAX_RETRIES exhausted', () => {
-    const { result } = renderHook(() => useTimelineSocket('user-1'));
+    const { result } = renderHook(() => useTimelineSocket('token-abc'));
     for (let i = 0; i < 9; i++) {
       act(() => { FakeWebSocket.instances[i]?.triggerClose(); });
       act(() => { vi.advanceTimersByTime(31_000); });

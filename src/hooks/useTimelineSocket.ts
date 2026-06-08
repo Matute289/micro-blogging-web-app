@@ -13,7 +13,7 @@ export interface TimelineSocketState {
   prependTweet: (tweet: Tweet) => void;
 }
 
-export function useTimelineSocket(userId: string | null): TimelineSocketState {
+export function useTimelineSocket(token: string | null): TimelineSocketState {
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,12 +28,12 @@ export function useTimelineSocket(userId: string | null): TimelineSocketState {
   }
 
   useEffect(() => {
-    if (!userId) return;
+    if (!token) return;
     unmounted.current = false;
 
     function connect() {
       if (unmounted.current) return;
-      const ws = new WebSocket(`${wsBaseUrl()}/ws/timeline?user_id=${userId}`);
+      const ws = new WebSocket(`${wsBaseUrl()}/ws/timeline?token=${encodeURIComponent(token!)}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
@@ -81,7 +81,7 @@ export function useTimelineSocket(userId: string | null): TimelineSocketState {
       if (timerRef.current !== null) clearTimeout(timerRef.current);
       wsRef.current?.close();
     };
-  }, [userId]);
+  }, [token]);
 
   return { tweets, connected, error, prependTweet };
 }
