@@ -12,7 +12,7 @@ import uuid
 from playwright.sync_api import sync_playwright, expect
 
 BASE_URL = "http://localhost:5175"
-USER_ID = "5181c068-6860-4327-bc2d-daccada7b66f"
+USER_ID = "98bd57cd-21bd-4a3c-a6c9-0ead5b6c8250"
 USERNAME = "demo_user_chirp"  # must match what the backend returns for USER_ID
 
 
