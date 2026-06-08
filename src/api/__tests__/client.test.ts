@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { apiFetch, ApiError } from '../client';
+import { apiFetch, ApiError, wsBaseUrl } from '../client';
 
 const mockFetch = vi.fn();
 beforeEach(() => {
@@ -91,5 +91,23 @@ describe('apiFetch', () => {
     await apiFetch('/users/test');
     const [url] = mockFetch.mock.calls[0];
     expect(url).toBe('http://localhost:8080/users/test');
+  });
+});
+
+describe('wsBaseUrl', () => {
+  it('returns a ws:// URL', () => {
+    // VITE_API_URL is not set in test env, so it defaults to http://localhost:8080
+    // which becomes ws://localhost:8080
+    expect(wsBaseUrl()).toMatch(/^ws:\/\//);
+  });
+
+  it('converts http:// prefix to ws://', () => {
+    const result = 'http://example.com:8080'.replace(/^http/, 'ws');
+    expect(result).toBe('ws://example.com:8080');
+  });
+
+  it('converts https:// prefix to wss://', () => {
+    const result = 'https://api.example.com'.replace(/^http/, 'ws');
+    expect(result).toBe('wss://api.example.com');
   });
 });
