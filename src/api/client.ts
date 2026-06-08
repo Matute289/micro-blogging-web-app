@@ -32,7 +32,7 @@ export async function apiFetch<T>(
   return res.json() as Promise<T>;
 }
 
-export function wsBaseUrl(): string {
-  return ((import.meta.env.VITE_API_URL as string | undefined) ?? 'http://localhost:8080')
-    .replace(/^http/, 'ws');
+export function wsBaseUrl(base = BASE_URL): string {
+  return base.replace(/^http/, 'ws');
 }
+

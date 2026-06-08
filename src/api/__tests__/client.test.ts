@@ -95,19 +95,15 @@ describe('apiFetch', () => {
 });
 
 describe('wsBaseUrl', () => {
-  it('returns a ws:// URL', () => {
-    // VITE_API_URL is not set in test env, so it defaults to http://localhost:8080
-    // which becomes ws://localhost:8080
-    expect(wsBaseUrl()).toMatch(/^ws:\/\//);
+  it('returns ws://localhost:8080 by default', () => {
+    expect(wsBaseUrl()).toBe('ws://localhost:8080');
   });
 
-  it('converts http:// prefix to ws://', () => {
-    const result = 'http://example.com:8080'.replace(/^http/, 'ws');
-    expect(result).toBe('ws://example.com:8080');
+  it('converts http:// to ws://', () => {
+    expect(wsBaseUrl('http://example.com:8080')).toBe('ws://example.com:8080');
   });
 
-  it('converts https:// prefix to wss://', () => {
-    const result = 'https://api.example.com'.replace(/^http/, 'ws');
-    expect(result).toBe('wss://api.example.com');
+  it('converts https:// to wss://', () => {
+    expect(wsBaseUrl('https://api.example.com')).toBe('wss://api.example.com');
   });
 });
