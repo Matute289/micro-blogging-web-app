@@ -57,6 +57,10 @@ export function useTimelineSocket(userId: string | null): TimelineSocketState {
         }
       };
 
+      ws.onerror = () => {
+        // onclose fires after onerror; reconnect is handled there
+      };
+
       ws.onclose = () => {
         if (unmounted.current) return;
         setConnected(false);

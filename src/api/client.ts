@@ -33,6 +33,14 @@ export async function apiFetch<T>(
 }
 
 export function wsBaseUrl(base = BASE_URL): string {
-  return base.replace(/^http/, 'ws');
+  if (/^https?:\/\//.test(base)) {
+    return base.replace(/^http/, 'ws');
+  }
+  // Relative base (e.g. VITE_API_URL=/api): use window.location for protocol + host
+  if (typeof window !== 'undefined') {
+    const proto = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+    return `${proto}//${window.location.host}${base}`;
+  }
+  return `ws://localhost:8080${base}`;
 }
 

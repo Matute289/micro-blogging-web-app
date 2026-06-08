@@ -106,4 +106,11 @@ describe('wsBaseUrl', () => {
   it('converts https:// to wss://', () => {
     expect(wsBaseUrl('https://api.example.com')).toBe('wss://api.example.com');
   });
+
+  it('builds an absolute ws:// URL from a relative base', () => {
+    // wsBaseUrl('/api') should produce ws://<window.location.host>/api
+    const result = wsBaseUrl('/api');
+    expect(result).toMatch(/^ws:\/\//);
+    expect(result).toContain('/api');
+  });
 });

@@ -33,6 +33,8 @@ export default function HomePage() {
     if (!user || tweets.length === 0) return;
     const seed = new Map([[user.id, user.username]]);
     resolveUsernames(tweets, usernames.size > 0 ? usernames : seed).then(setUsernames);
+    // usernames intentionally omitted: resolveUsernames only reads it as a starting
+    // point; adding it to deps would cause an infinite loop (setUsernames → re-run).
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tweets]);
 
