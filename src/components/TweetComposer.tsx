@@ -27,7 +27,7 @@ export default function TweetComposer({ onPosted }: TweetComposerProps) {
     setSubmitting(true);
     setError('');
     try {
-      const tweet = await postTweet(user.id, text.trim());
+      const tweet = await postTweet(text.trim());
       onPosted(tweet);
       setText('');
     } catch {

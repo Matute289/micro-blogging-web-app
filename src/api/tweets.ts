@@ -2,7 +2,6 @@ import { apiFetch } from './client';
 import type { Tweet, MediaItem, PaginationParams } from './types';
 
 export function postTweet(
-  _userId: string,
   text: string,
   media?: MediaItem[],
 ): Promise<Tweet> {
