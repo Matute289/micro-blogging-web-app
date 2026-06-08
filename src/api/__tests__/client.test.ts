@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { apiFetch, ApiError, wsBaseUrl } from '../client';
+import { apiFetch, ApiError, wsBaseUrl, setAuthToken } from '../client';
 
 const mockFetch = vi.fn();
 beforeEach(() => {
@@ -70,12 +70,14 @@ describe('apiFetch', () => {
     expect(result).toBeUndefined();
   });
 
-  it('sets X-User-ID header when userId is provided', async () => {
+  it('sets Authorization header when authToken is set', async () => {
     mockFetch.mockResolvedValue(makeResponse(200, []));
-    await apiFetch('/timeline', { userId: 'user-uuid-123' });
+    setAuthToken('test-token-123');
+    await apiFetch('/timeline');
     const [, init] = mockFetch.mock.calls[0];
     const headers = init.headers as Record<string, string>;
-    expect(headers['X-User-ID']).toBe('user-uuid-123');
+    expect(headers['Authorization']).toBe('Bearer test-token-123');
+    setAuthToken(null);
   });
 
   it('sets Content-Type header when body is present', async () => {
