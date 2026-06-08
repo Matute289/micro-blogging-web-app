@@ -25,7 +25,7 @@ export default function LoginPage() {
     setError('');
     try {
       const user = await createUser(name);
-      login(user);
+      login('', user);
       navigate('/home', { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 409) {
@@ -47,7 +47,7 @@ export default function LoginPage() {
     setError('');
     try {
       const user = await getUser(id);
-      login(user);
+      login('', user);
       navigate('/home', { replace: true });
     } catch (err) {
       if (err instanceof ApiError && err.status === 404) {

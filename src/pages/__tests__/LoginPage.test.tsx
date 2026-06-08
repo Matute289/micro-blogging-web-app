@@ -51,7 +51,7 @@ describe('LoginPage — create account flow', () => {
     await userEvent.click(screen.getByRole('button', { name: /Continue/i }));
     await waitFor(() => {
       expect(usersApi.createUser).toHaveBeenCalledWith('newuser');
-      expect(mockLogin).toHaveBeenCalledWith(newUser);
+      expect(mockLogin).toHaveBeenCalledWith('', newUser);
       expect(mockNavigate).toHaveBeenCalledWith('/home', { replace: true });
     });
   });
