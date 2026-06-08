@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { wsBaseUrl } from '../api/client';
 import type { Tweet } from '../api/types';
 
@@ -23,9 +23,9 @@ export function useTimelineSocket(userId: string | null): TimelineSocketState {
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmounted = useRef(false);
 
-  const prependTweet = useCallback((tweet: Tweet) => {
+  function prependTweet(tweet: Tweet) {
     setTweets(prev => [tweet, ...prev]);
-  }, []);
+  }
 
   useEffect(() => {
     if (!userId) return;
