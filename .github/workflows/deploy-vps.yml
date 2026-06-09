@@ -2,7 +2,7 @@ name: Deploy Web App to VPS
 
 on:
   push:
-    branches: [vps-deploy]
+    branches: [main]
   workflow_dispatch:
 
 jobs:
@@ -20,6 +20,9 @@ jobs:
         run: |
           docker buildx build --load \
             -f deploy/Dockerfile.vps \
+            --build-arg VITE_GOOGLE_CLIENT_ID=${{ secrets.VITE_GOOGLE_CLIENT_ID }} \
+            --build-arg VITE_GITHUB_CLIENT_ID=${{ secrets.VITE_GITHUB_CLIENT_ID }} \
+            --build-arg VITE_APPLE_CLIENT_ID=${{ secrets.VITE_APPLE_CLIENT_ID }} \
             -t blog-web:latest .
 
       - name: Save image as tarball
