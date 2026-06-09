@@ -42,7 +42,6 @@ src/
     users.ts          ← createUser(), getUser()
     tweets.ts         ← postTweet(), getUserTweets()
     follows.ts        ← followUser(), unfollowUser()
-    timeline.ts       ← getTimeline()
   contexts/
     AuthContext.tsx   ← currentUser, login, logout (localStorage)
   components/
@@ -71,5 +70,7 @@ src/
 Go service at `http://localhost:8080`. Configured via `VITE_API_URL` env var (falls back to `http://localhost:8080`).
 
 Identity is header-based: `X-User-ID: <uuid>`. The UUID is persisted in `localStorage` under the key `pulse_user`.
+
+WebSocket: `ws://localhost:8080/ws/timeline?user_id=<uuid>` — real-time timeline feed.
 
 See `.claude/context.md` for full endpoint reference and login flow.

@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { apiFetch, ApiError } from '../client';
+import { apiFetch, ApiError, wsBaseUrl, setAuthToken } from '../client';
 
 const mockFetch = vi.fn();
 beforeEach(() => {
@@ -70,12 +70,14 @@ describe('apiFetch', () => {
     expect(result).toBeUndefined();
   });
 
-  it('sets X-User-ID header when userId is provided', async () => {
+  it('sets Authorization header when authToken is set', async () => {
     mockFetch.mockResolvedValue(makeResponse(200, []));
-    await apiFetch('/timeline', { userId: 'user-uuid-123' });
+    setAuthToken('test-token-123');
+    await apiFetch('/timeline');
     const [, init] = mockFetch.mock.calls[0];
     const headers = init.headers as Record<string, string>;
-    expect(headers['X-User-ID']).toBe('user-uuid-123');
+    expect(headers['Authorization']).toBe('Bearer test-token-123');
+    setAuthToken(null);
   });
 
   it('sets Content-Type header when body is present', async () => {
@@ -91,5 +93,26 @@ describe('apiFetch', () => {
     await apiFetch('/users/test');
     const [url] = mockFetch.mock.calls[0];
     expect(url).toBe('http://localhost:8080/users/test');
+  });
+});
+
+describe('wsBaseUrl', () => {
+  it('returns ws://localhost:8080 by default', () => {
+    expect(wsBaseUrl()).toBe('ws://localhost:8080');
+  });
+
+  it('converts http:// to ws://', () => {
+    expect(wsBaseUrl('http://example.com:8080')).toBe('ws://example.com:8080');
+  });
+
+  it('converts https:// to wss://', () => {
+    expect(wsBaseUrl('https://api.example.com')).toBe('wss://api.example.com');
+  });
+
+  it('builds an absolute ws:// URL from a relative base', () => {
+    // wsBaseUrl('/api') should produce ws://<window.location.host>/api
+    const result = wsBaseUrl('/api');
+    expect(result).toMatch(/^ws:\/\//);
+    expect(result).toContain('/api');
   });
 });

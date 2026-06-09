@@ -54,7 +54,7 @@ describe('TweetComposer', () => {
     await userEvent.type(screen.getByRole('textbox'), 'Test tweet');
     await userEvent.click(screen.getByRole('button', { name: /Pulse/i }));
     await waitFor(() => {
-      expect(tweetsApi.postTweet).toHaveBeenCalledWith(mockUser.id, 'Test tweet');
+      expect(tweetsApi.postTweet).toHaveBeenCalledWith('Test tweet');
       expect(onPosted).toHaveBeenCalledWith(mockTweet);
     });
   });

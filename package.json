@@ -13,7 +13,9 @@
     "test:e2e": "python3 tests/e2e/pulse.spec.py"
   },
   "dependencies": {
+    "@react-oauth/google": "^0.13.5",
     "react": "^19.2.6",
+    "react-apple-signin-auth": "^1.2.1",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.1"
   },

@@ -30,7 +30,19 @@ Header `X-User-ID: <uuid>` — sin auth real. El frontend almacena el UUID en `l
 | GET | /users/:id/tweets | No | Query: `limit`, `before`. Resp: Tweet[] |
 | POST | /users/:id/follow | Sí | Resp 204 |
 | DELETE | /users/:id/follow | Sí | Resp 204 |
-| GET | /timeline | Sí | Query: `limit`, `before`. Resp: Tweet[] |
+| WS | /ws/timeline?user_id={uuid} | No header (query param) | Connect: `{"type":"timeline","data":Tweet[]}`. Push: `{"type":"tweet","data":Tweet}`. |
+
+### WebSocket timeline
+
+Connect: `ws://localhost:8080/ws/timeline?user_id={uuid}`
+
+Messages:
+- `{"type":"timeline","data":Tweet[]}` — initial snapshot on connect (20 tweets)
+- `{"type":"tweet","data":Tweet}` — real-time push when someone you follow posts
+
+Auth: `user_id` as query param (browsers cannot set custom headers on WebSocket connections)
+
+The frontend handles reconnection automatically with exponential backoff.
 
 ### Tipos
 

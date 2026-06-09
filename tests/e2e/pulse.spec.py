@@ -9,30 +9,54 @@ Run:
 
 import sys
 import uuid
+import time
+import base64
+import json
 from playwright.sync_api import sync_playwright, expect
 
 BASE_URL = "http://localhost:5175"
-USER_ID = "5181c068-6860-4327-bc2d-daccada7b66f"
+USER_ID = "98bd57cd-21bd-4a3c-a6c9-0ead5b6c8250"
 USERNAME = "demo_user_chirp"  # must match what the backend returns for USER_ID
 
 
+def make_fake_token(user_id: str, username: str) -> str:
+    """Create a fake JWT-shaped token (not cryptographically valid, but accepted by AuthContext's expiry check)."""
+    payload = {
+        "uid": user_id,
+        "username": username,
+        "sub": user_id,
+        "iat": int(time.time()),
+        "exp": int(time.time()) + 3600,
+    }
+    # Base64url-encode header.payload.sig (AuthContext only decodes the payload part)
+    header = base64.urlsafe_b64encode(b'{"alg":"HS256"}').rstrip(b'=').decode()
+    body = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b'=').decode()
+    return f"{header}.{body}.fakesig"
+
+
 def inject_auth(page, user_id: str = USER_ID, username: str = USERNAME):
-    """Inject a stored user into localStorage so we skip the login screen."""
-    page.evaluate(f"""() => {{
-        localStorage.setItem('pulse_user', JSON.stringify({{
-            id: '{user_id}',
-            username: '{username}',
-            created_at: new Date().toISOString(),
-            last_seen_at: new Date().toISOString()
-        }}));
-    }}""")
+    """Inject JWT auth into localStorage so we skip the OAuth login screen."""
+    token = make_fake_token(user_id, username)
+    exp = int(time.time()) + 3600
+    user_json = json.dumps({
+        "id": user_id,
+        "username": username,
+        "created_at": "2024-01-01T00:00:00.000Z",
+        "last_seen_at": "2024-01-01T00:00:00.000Z",
+    })
+    stored = json.dumps({
+        "token": token,
+        "user": json.loads(user_json),
+        "exp": exp,
+    })
+    page.evaluate(f"() => localStorage.setItem('pulse_auth', {json.dumps(stored)})")
 
 
 def mobile_page(browser):
     return browser.new_page(viewport={"width": 390, "height": 844})
 
 
-def test_login_create_account(browser):
+def test_login_page_shows_oauth_buttons(browser):
     page = mobile_page(browser)
     page.goto(BASE_URL)
     page.wait_for_load_state("networkidle")
@@ -43,39 +67,12 @@ def test_login_create_account(browser):
     # Brand logo visible
     expect(page.locator(".login-logo")).to_have_text("Pulse")
 
-    # Continue button disabled with empty input
-    btn = page.locator("button[type=submit]")
-    expect(btn).to_be_disabled()
+    # GitHub button visible
+    expect(page.locator(".login-btn-github")).to_be_visible()
 
-    # Type a unique username (avoid 409 conflicts)
-    unique_name = f"e2e_{uuid.uuid4().hex[:8]}"
-    page.fill("#username", unique_name)
-    expect(btn).to_be_enabled()
-
-    # Submit — backend creates user and we land on /home
-    page.click("button[type=submit]")
-    page.wait_for_url("**/home", timeout=6000)
-    assert "/home" in page.url
-
-    # Header shows the username
-    expect(page.locator(".home-header-user")).to_contain_text(unique_name)
-    print("  PASS: test_login_create_account")
-
-
-def test_login_taken_username_shows_id_screen(browser):
-    page = mobile_page(browser)
-    # Use a username we know exists (the one created in the previous test run)
-    page.goto(BASE_URL + "/login")
-    page.wait_for_load_state("networkidle")
-
-    # demo_user_chirp was created in manual testing — use it
-    page.fill("#username", "demo_user_chirp")
-    page.click("button[type=submit]")
-
-    # Should transition to "login with ID" mode
-    page.wait_for_selector("#user-id", timeout=5000)
-    expect(page.locator(".login-title")).to_contain_text("Username taken")
-    print("  PASS: test_login_taken_username_shows_id_screen")
+    # Login providers container visible
+    expect(page.locator(".login-providers")).to_be_visible()
+    print("  PASS: test_login_page_shows_oauth_buttons")
 
 
 def test_home_page_shows_composer_and_nav(browser):
@@ -189,8 +186,7 @@ def test_unauthenticated_redirects_to_login(browser):
 
 if __name__ == "__main__":
     tests = [
-        test_login_create_account,
-        test_login_taken_username_shows_id_screen,
+        test_login_page_shows_oauth_buttons,
         test_home_page_shows_composer_and_nav,
         test_post_tweet,
         test_character_count_warning,

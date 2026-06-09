@@ -2,13 +2,11 @@ import { apiFetch } from './client';
 import type { Tweet, MediaItem, PaginationParams } from './types';
 
 export function postTweet(
-  userId: string,
   text: string,
   media?: MediaItem[],
 ): Promise<Tweet> {
   return apiFetch<Tweet>('/tweets', {
     method: 'POST',
-    userId,
     body: JSON.stringify({ text, ...(media?.length ? { media } : {}) }),
   });
 }

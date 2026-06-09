@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { getUser } from '../api/users';
@@ -15,7 +15,7 @@ const PAGE_SIZE = 20;
 
 export default function ProfilePage() {
   const { userId: paramId } = useParams<{ userId: string }>();
-  const { user: currentUser } = useAuth();
+  const { user: currentUser, logout } = useAuth();
   const navigate = useNavigate();
 
   const targetId = paramId === 'me' ? currentUser?.id : paramId;
@@ -58,7 +58,7 @@ export default function ProfilePage() {
       .finally(() => setLoading(false));
   }, [targetId]);
 
-  const fetchMore = useCallback(async () => {
+  async function fetchMore() {
     if (!targetId || loadingMore || !hasMore) return;
     const cursor = tweets[tweets.length - 1]?.id;
     if (!cursor) return;
@@ -70,7 +70,7 @@ export default function ProfilePage() {
     } finally {
       setLoadingMore(false);
     }
-  }, [targetId, tweets, loadingMore, hasMore]);
+  }
 
   useEffect(() => { fetchMoreRef.current = fetchMore; });
 
@@ -126,6 +126,11 @@ export default function ProfilePage() {
                   {following ? 'Unfollow' : 'Follow'}
                 </button>
               </div>
+            )}
+            {isOwnProfile && (
+              <button className="profile-logout-btn" onClick={logout} type="button">
+                Sign out
+              </button>
             )}
           </div>
 

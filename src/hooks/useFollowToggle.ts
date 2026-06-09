@@ -32,11 +32,11 @@ export function useFollowToggle(
     try {
       const set = loadFollowedSet(currentUserId);
       if (following) {
-        await unfollowUser(currentUserId, targetUserId);
+        await unfollowUser(targetUserId);
         set.delete(targetUserId);
         setFollowing(false);
       } else {
-        await followUser(currentUserId, targetUserId);
+        await followUser(targetUserId);
         set.add(targetUserId);
         setFollowing(true);
       }
