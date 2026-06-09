@@ -132,6 +132,8 @@ describe('useTimelineSocket', () => {
   });
 
   it('sets error and stops retrying after MAX_RETRIES exhausted', () => {
+    // No onAuthFailure provided: close-without-open falls through to retry/error path.
+    // Drive 9 close-without-open cycles to exhaust MAX_RETRIES=8.
     const { result } = renderHook(() => useTimelineSocket('token-abc'));
     for (let i = 0; i < 9; i++) {
       act(() => { FakeWebSocket.instances[i]?.triggerClose(); });
@@ -141,5 +143,28 @@ describe('useTimelineSocket', () => {
     const countAfterError = FakeWebSocket.instances.length;
     act(() => { vi.advanceTimersByTime(60_000); });
     expect(FakeWebSocket.instances.length).toBe(countAfterError);
+  });
+
+  it('calls onAuthFailure and does not retry when close fires without open', () => {
+    const onAuthFailure = vi.fn();
+    renderHook(() => useTimelineSocket('token-abc', onAuthFailure));
+    act(() => { FakeWebSocket.instances[0].triggerClose(); });
+    expect(onAuthFailure).toHaveBeenCalledOnce();
+    // no retry timer — no new socket created
+    act(() => { vi.advanceTimersByTime(31_000); });
+    expect(FakeWebSocket.instances).toHaveLength(1);
+  });
+
+  it('does not call onAuthFailure when close fires after a successful open', () => {
+    const onAuthFailure = vi.fn();
+    renderHook(() => useTimelineSocket('token-abc', onAuthFailure));
+    act(() => {
+      FakeWebSocket.instances[0].triggerOpen();
+      FakeWebSocket.instances[0].triggerClose();
+    });
+    expect(onAuthFailure).not.toHaveBeenCalled();
+    // a retry should be scheduled instead
+    act(() => { vi.advanceTimersByTime(1001); });
+    expect(FakeWebSocket.instances).toHaveLength(2);
   });
 });

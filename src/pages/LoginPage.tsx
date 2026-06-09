@@ -39,10 +39,13 @@ export default function LoginPage() {
       setError('GitHub sign-in is not configured.');
       return;
     }
+    const state = crypto.randomUUID();
+    sessionStorage.setItem('github_oauth_state', state);
     const params = new URLSearchParams({
       client_id: GITHUB_CLIENT_ID,
       redirect_uri: `${window.location.origin}/auth/callback/github`,
       scope: 'user:email',
+      state,
     });
     window.location.href = `https://github.com/login/oauth/authorize?${params}`;
   }

@@ -25,8 +25,8 @@ async function resolveUsernames(
 }
 
 export default function HomePage() {
-  const { user, token } = useAuth();
-  const { tweets, connected, error, prependTweet } = useTimelineSocket(token);
+  const { user, token, logout } = useAuth();
+  const { tweets, connected, error, prependTweet } = useTimelineSocket(token, logout);
   const [usernames, setUsernames] = useState<Map<string, string>>(new Map());
 
   useEffect(() => {

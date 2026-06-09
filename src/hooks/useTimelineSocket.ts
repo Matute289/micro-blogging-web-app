@@ -13,7 +13,10 @@ export interface TimelineSocketState {
   prependTweet: (tweet: Tweet) => void;
 }
 
-export function useTimelineSocket(token: string | null): TimelineSocketState {
+export function useTimelineSocket(
+  token: string | null,
+  onAuthFailure?: () => void,
+): TimelineSocketState {
   const [tweets, setTweets] = useState<Tweet[]>([]);
   const [connected, setConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -22,6 +25,7 @@ export function useTimelineSocket(token: string | null): TimelineSocketState {
   const retryCount = useRef(0);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const unmounted = useRef(false);
+  const wasConnected = useRef(false);
 
   function prependTweet(tweet: Tweet) {
     setTweets(prev => [tweet, ...prev]);
@@ -33,11 +37,13 @@ export function useTimelineSocket(token: string | null): TimelineSocketState {
 
     function connect() {
       if (unmounted.current) return;
+      wasConnected.current = false;
       const ws = new WebSocket(`${wsBaseUrl()}/ws/timeline?token=${encodeURIComponent(token!)}`);
       wsRef.current = ws;
 
       ws.onopen = () => {
         if (unmounted.current) { ws.close(); return; }
+        wasConnected.current = true;
         retryCount.current = 0;
         setConnected(true);
         setError(null);
@@ -64,6 +70,12 @@ export function useTimelineSocket(token: string | null): TimelineSocketState {
       ws.onclose = () => {
         if (unmounted.current) return;
         setConnected(false);
+        if (!wasConnected.current && onAuthFailure) {
+          // Failed before handshake and caller wants to handle auth failure
+          onAuthFailure();
+          return;
+        }
+        wasConnected.current = false; // reset for reconnect
         if (retryCount.current >= MAX_RETRIES) {
           setError('Connection lost. Please refresh.');
           return;

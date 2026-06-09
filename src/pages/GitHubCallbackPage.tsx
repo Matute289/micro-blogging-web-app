@@ -11,7 +11,18 @@ export default function GitHubCallbackPage() {
 
   useEffect(() => {
     const code = params.get('code');
+    const state = params.get('state');
+    const savedState = sessionStorage.getItem('github_oauth_state');
+    sessionStorage.removeItem('github_oauth_state'); // consume immediately
+
     if (!code || called.current) return;
+
+    // State mismatch → possible CSRF; reject
+    if (!savedState || state !== savedState) {
+      navigate('/login?error=github_state_mismatch', { replace: true });
+      return;
+    }
+
     called.current = true;
 
     loginWithGitHub(code)
